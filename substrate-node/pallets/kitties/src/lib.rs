@@ -5,15 +5,6 @@
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
 
-// #[cfg(test)]
-// mod mock;
-
-// #[cfg(test)]
-// mod tests;
-
-// #[cfg(feature = "runtime-benchmarks")]
-// mod benchmarking;
-
 use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 use frame_support::inherent::Vec;
@@ -75,7 +66,7 @@ pub mod pallet {
 	// Value: Array of kitty DNAs
 	#[pallet::storage]
 	#[pallet::getter(fn kitties_by_owner)]
-	pub(super) type UserKitties<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<Vec<u8>>, OptionQuery>;
+	pub(super) type KittiesOwned<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<Vec<u8>>, OptionQuery>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/v3/runtime/events-and-errors
@@ -96,7 +87,6 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Error names should be descriptive.
 		/// Errors should have helpful documentation associated with them.
-		StorageOverflow,
 		KittyNotExist,
 		KittyAlreadyExist,
 		KittyNotOwned,
@@ -139,16 +129,16 @@ pub mod pallet {
 			current_number_kitties += 1;
 			NumOfKitties::<T>::put(current_number_kitties);
 
-			let current_user_kitties = <UserKitties<T>>::get(&who);
+			let current_user_kitties = <KittiesOwned<T>>::get(&who);
 			match current_user_kitties {
 				Some(mut kitties) => {
 					kitties.push(dna.clone());
-					<UserKitties<T>>::insert(&who, kitties);
+					<KittiesOwned<T>>::insert(&who, kitties);
 				},
 				None => {
 					let mut kitties = Vec::new();
 					kitties.push(dna.clone());
-					<UserKitties<T>>::insert(&who, kitties);
+					<KittiesOwned<T>>::insert(&who, kitties);
 				},
 			};
 
@@ -172,28 +162,28 @@ pub mod pallet {
 			let mut kitty = kitty_opt.unwrap();
 			ensure!(kitty.owner == owner, Error::<T>::KittyNotOwned);
 
-			let current_owner_kitties = <UserKitties<T>>::get(&who);
+			let current_owner_kitties = <KittiesOwned<T>>::get(&who);
 			match current_owner_kitties {
 				Some(mut kitties) => {
 					let index = kitties.iter().position(|x| x == &dna).unwrap();
 					kitties.remove(index);
-					<UserKitties<T>>::insert(&who, kitties);
+					<KittiesOwned<T>>::insert(&who, kitties);
 				},
 				None => {
 					Err(Error::<T>::KittyNotOwned)?;
 				},
 			};
 
-			let current_new_owner_kitties = <UserKitties<T>>::get(&new_owner);
+			let current_new_owner_kitties = <KittiesOwned<T>>::get(&new_owner);
 			match current_new_owner_kitties {
 				Some(mut kitties) => {
 					kitties.push(dna.clone());
-					<UserKitties<T>>::insert(&new_owner, kitties);
+					<KittiesOwned<T>>::insert(&new_owner, kitties);
 				},
 				None => {
 					let mut kitties = Vec::new();
 					kitties.push(dna.clone());
-					<UserKitties<T>>::insert(&new_owner, kitties);
+					<KittiesOwned<T>>::insert(&new_owner, kitties);
 				},
 			};
 
