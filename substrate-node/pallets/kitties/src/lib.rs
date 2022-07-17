@@ -20,6 +20,9 @@ use sp_std::vec::Vec;
 use scale_info::TypeInfo;
 pub type Id = u32;
 use sp_runtime::ArithmeticError;
+use frame_support::traits::Time;
+
+type AtMoment<T> = <<T as Config>::Time as Time>::Moment;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -32,6 +35,7 @@ pub mod pallet {
 		pub price: u64,
 		pub gender: Gender,
 		pub owner: T::AccountId,
+		pub created_date: AtMoment<T>,
 	}
 	#[derive(Clone, Encode, Decode, PartialEq, Copy, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 	pub enum Gender {
@@ -44,6 +48,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type Time: Time;
 	}
 
 	#[pallet::pallet]
@@ -101,7 +106,7 @@ pub mod pallet {
 			let owner = ensure_signed(origin)?;
 
 			let gender = Self::gen_gender(&dna)?;
-			let kitty = Kitty::<T> { dna: dna.clone(), price: 0, gender, owner: owner.clone() };
+			let kitty = Kitty::<T> {dna:dna.clone(),price:0,gender,owner:owner.clone(), created_date: T::Time::now() };
 
 			// Check if the kitty does not already exist in our storage map
 			ensure!(!Kitties::<T>::contains_key(&kitty.dna), Error::<T>::DuplicateKitty);
