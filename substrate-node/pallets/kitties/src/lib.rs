@@ -18,9 +18,11 @@ use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 use sp_std::vec::Vec;
 use scale_info::TypeInfo;
-pub type Id = u32;
 use sp_runtime::ArithmeticError;
-use frame_support::traits::Time;
+use frame_support::traits::*;
+use frame_support::storage::bounded_vec::BoundedVec;
+
+pub type Id = u32;
 
 type AtMoment<T> = <<T as Config>::Time as Time>::Moment;
 
@@ -49,6 +51,9 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type Time: Time;
+
+		#[pallet::constant]
+		type KittiesOwnedLimit: Get<u32>;
 	}
 
 	#[pallet::pallet]
@@ -68,7 +73,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn kitty_owned)]
-	pub(super) type KittiesOwned<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<Vec<u8>>, ValueQuery>;
+	pub(super) type KittiesOwned<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<Vec<u8>, T::KittiesOwnedLimit>, ValueQuery>;
 
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/v3/runtime/events-and-errors
@@ -89,6 +94,7 @@ pub mod pallet {
 		NoKitty,
 		NotOwner,
 		TransferToSelf,
+		ExceedOwnedLimit,
 
 	}
 
@@ -116,7 +122,9 @@ pub mod pallet {
 			let next_id = current_id.checked_add(1).ok_or(ArithmeticError::Overflow)?;
 
 			// Append kitty to KittiesOwned
-			KittiesOwned::<T>::append(&owner, kitty.dna.clone());
+			let mut owner_owned = KittiesOwned::<T>::get(&owner);
+			owner_owned.try_push(kitty.dna.clone()).map_err(|_| Error::<T>::ExceedOwnedLimit)?;
+			KittiesOwned::<T>::insert(&owner, owner_owned);
 
 			// Write new kitty to storage
 			Kitties::<T>::insert(kitty.dna.clone(), kitty);
@@ -149,7 +157,7 @@ pub mod pallet {
 			}
 
 			let mut to_owned = KittiesOwned::<T>::get(&to);
-			to_owned.push(dna.clone());
+			to_owned.try_push(dna.clone()).map_err(|_| Error::<T>::ExceedOwnedLimit)?;
 			kitty.owner = to.clone();
 
 			// Write updates to storage
