@@ -51,6 +51,7 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type Time: Time;
+		type RandomnessDNA: Randomness<Self::Hash, Self::BlockNumber>;
 
 		#[pallet::constant]
 		type KittiesOwnedLimit: Get<u32>;
@@ -66,6 +67,10 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn kitty_id)]
 	pub type KittyId<T> = StorageValue<_, Id, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn nonce_value)]
+	pub type Nonce<T> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn get_kitty)]
@@ -107,9 +112,16 @@ pub mod pallet {
 	impl<T:Config> Pallet<T> {
 
 		#[pallet::weight(0)]
-		pub fn create_kitty(origin: OriginFor<T>, dna: Vec<u8>) -> DispatchResult {
+		pub fn create_kitty(origin: OriginFor<T>) -> DispatchResult {
 			// Make sure the caller is from a signed origin
 			let owner = ensure_signed(origin)?;
+
+			// Random DNA
+			let nonce = Nonce::<T>::get();
+			Nonce::<T>::put(nonce.wrapping_add(1));
+			let nonce_encoded = nonce.encode();
+			let (random_dna, _) = T::RandomnessDNA::random(&nonce_encoded);
+			let dna = random_dna.encode();
 
 			let gender = Self::gen_gender(&dna)?;
 			let kitty = Kitty::<T> {dna:dna.clone(),price:0,gender,owner:owner.clone(), created_date: T::Time::now() };
