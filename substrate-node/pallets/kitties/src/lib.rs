@@ -21,6 +21,7 @@ use scale_info::TypeInfo;
 use sp_runtime::ArithmeticError;
 use frame_support::traits::*;
 use frame_support::storage::bounded_vec::BoundedVec;
+use frame_support::dispatch::fmt;
 
 pub type Id = u32;
 
@@ -30,7 +31,7 @@ type AtMoment<T> = <<T as Config>::Time as Time>::Moment;
 pub mod pallet {
 
 	pub use super::*;
-	#[derive(Clone, Encode, Decode, PartialEq, RuntimeDebug, TypeInfo)]
+	#[derive(Clone, Encode, Decode, PartialEq, TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct Kitty<T: Config> {
 		pub dna: Vec<u8>,
@@ -39,6 +40,19 @@ pub mod pallet {
 		pub owner: T::AccountId,
 		pub created_date: AtMoment<T>,
 	}
+
+	impl<T: Config> fmt::Debug for Kitty<T> {
+		fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+			f.debug_struct("Kitty")
+			 .field("dna", &self.dna)
+			 .field("price", &self.price)
+			 .field("gender", &self.gender)
+			 .field("owner", &self.owner)
+			 .field("created_date", &self.created_date)
+			 .finish()
+		}
+	}
+
 	#[derive(Clone, Encode, Decode, PartialEq, Copy, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 	pub enum Gender {
 		Male,
@@ -125,6 +139,8 @@ pub mod pallet {
 
 			let gender = Self::gen_gender(&dna)?;
 			let kitty = Kitty::<T> {dna:dna.clone(),price:0,gender,owner:owner.clone(), created_date: T::Time::now() };
+
+			log::info!("Kitty: {:?}", &kitty);
 
 			// Check if the kitty does not already exist in our storage map
 			ensure!(!Kitties::<T>::contains_key(&kitty.dna), Error::<T>::DuplicateKitty);
