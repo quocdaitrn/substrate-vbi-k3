@@ -46,7 +46,10 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the template pallet.
 pub use pallet_template;
 
-/// Import the template pallet.
+/// Import the demo pallet.
+pub use pallet_demo;
+
+/// Import the kitties pallet.
 pub use pallet_kitties;
 
 /// An index to a block.
@@ -270,7 +273,12 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
-/// Configure the pallet-template in pallets/template.
+/// Configure the pallet-demo in pallets/demo.
+impl pallet_demo::Config for Runtime {
+	type Event = Event;
+}
+
+/// Configure the pallet-kitties in pallets/kitties.
 impl pallet_kitties::Config for Runtime {
 	type Event = Event;
 	type Time = Timestamp;
@@ -295,6 +303,7 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		DemoModule: pallet_demo,
 		KittiesModule: pallet_kitties,
 	}
 );
@@ -341,6 +350,7 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
 		[pallet_template, TemplateModule]
+		[pallet_demo, DemoModule]
 		[pallet_kitties, KittiesModule]
 	);
 }
