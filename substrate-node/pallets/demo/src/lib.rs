@@ -5,11 +5,11 @@
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 // #[cfg(feature = "runtime-benchmarks")]
 // mod benchmarking;
@@ -113,7 +113,7 @@ pub mod pallet {
 			// This function will return an error if the extrinsic is not signed.
 			// https://docs.substrate.io/v3/runtime/origins
 			let who = ensure_signed(origin)?;
-			ensure!(age > 20, Error::<T>::TooYoung);
+			ensure!(age >= 18, Error::<T>::TooYoung);
 			let gender = Self::gen_gender(name.clone())?;
 			let student = Students { name: name.clone(), age, gender: gender.clone(), account: who };
 			// let current_id = Self::student_id();

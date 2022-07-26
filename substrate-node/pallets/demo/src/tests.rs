@@ -5,16 +5,16 @@ use frame_support::{assert_noop, assert_ok};
 fn it_works_for_default_value() {
 	new_test_ext().execute_with(|| {
 		// Dispatch a signed extrinsic.
-		assert_ok!(TemplateModule::do_something(Origin::signed(1), 42));
+		assert_ok!(DemoModule::create_student(Origin::signed(1), "daitran".as_bytes().to_vec(), 25));
 		// Read pallet storage and assert an expected result.
-		assert_eq!(TemplateModule::something(), Some(42));
+		assert_eq!(DemoModule::student_id(), 1);
 	});
 }
 
 #[test]
-fn correct_error_for_none_value() {
+fn it_does_not_work_with_invalid_value() {
 	new_test_ext().execute_with(|| {
-		// Ensure the expected error is thrown when no value is present.
-		assert_noop!(TemplateModule::cause_error(Origin::signed(1)), Error::<Test>::NoneValue);
+		// Ensure the expected error is thrown when creating a student with age less than 18.
+		assert_noop!(DemoModule::create_student(Origin::signed(1), "daitran".as_bytes().to_vec(), 15), Error::<Test>::TooYoung);
 	});
 }
