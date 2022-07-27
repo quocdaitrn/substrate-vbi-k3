@@ -3,18 +3,23 @@
 use super::*;
 
 #[allow(unused)]
-use crate::Pallet as Template;
+use crate::Pallet as Kitties;
 use frame_benchmarking::{benchmarks, whitelisted_caller};
 use frame_system::RawOrigin;
 
 benchmarks! {
-	do_something {
-		let s in 0 .. 100;
+	transfer {
 		let caller: T::AccountId = whitelisted_caller();
-	}: _(RawOrigin::Signed(caller), s)
+		let caller_origin = <T as frame_system::Config>::Origin::from(RawOrigin::Signed(caller.clone()));
+
+		Kitties::<T>::create_kitty(caller_origin);
+
+		let dna = KittiesOwned::<T>::get(caller.clone()).get(0).unwrap();
+		let receiver: T::AccountId = whitelisted_caller();
+	}: transfer (RawOrigin::Signed(caller), receiver, dna.to_vec())
 	verify {
-		assert_eq!(Something::<T>::get(), Some(s));
+		// assert_eq!(KittiesOwned::<T>::get(receiver.clone()).get(0).unwrap(), dna);
 	}
 
-	impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test);
+	impl_benchmark_test_suite!(Kitties, crate::mock::new_test_ext(), crate::mock::Test);
 }

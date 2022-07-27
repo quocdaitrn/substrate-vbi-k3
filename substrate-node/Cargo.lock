@@ -4049,6 +4049,8 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "pallet-randomness-collective-flip",
+ "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
