@@ -8,6 +8,7 @@ fn it_works_for_default_value() {
 		assert_ok!(DemoModule::create_student(Origin::signed(1), "daitran".as_bytes().to_vec(), 25));
 		// Read pallet storage and assert an expected result.
 		assert_eq!(DemoModule::student_id(), 1);
+		assert_eq!(DemoModule::student(0).is_some(), true);
 	});
 }
 
