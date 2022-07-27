@@ -11,8 +11,8 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-// #[cfg(feature = "runtime-benchmarks")]
-// mod benchmarking;
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 
 use frame_support::{dispatch::fmt, inherent::Vec, pallet_prelude::*};
 use frame_system::pallet_prelude::*;
