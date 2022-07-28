@@ -163,7 +163,7 @@ pub mod pallet {
 
 			Ok(())
 		}
-		#[pallet::weight(0)]
+		#[pallet::weight(53_000_000 + T::DbWeight::get().reads_writes(3, 3))]
 		pub fn transfer(
 			origin: OriginFor<T>,
 			to: T::AccountId,
