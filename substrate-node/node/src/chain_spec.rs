@@ -60,6 +60,12 @@ pub fn development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 				],
 				true,
+				vec![
+					"dna1".as_bytes().to_vec(),
+					"dna2".as_bytes().to_vec(),
+					"dna3".as_bytes().to_vec(),
+				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
 			)
 		},
 		// Bootnodes
@@ -108,6 +114,12 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				true,
+				vec![
+					"dna1".as_bytes().to_vec(),
+					"dna2".as_bytes().to_vec(),
+					"dna3".as_bytes().to_vec(),
+				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
 			)
 		},
 		// Bootnodes
@@ -131,6 +143,8 @@ fn testnet_genesis(
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
+	dnas: Vec<Vec<u8>>,
+	account: AccountId,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -153,8 +167,8 @@ fn testnet_genesis(
 		},
 		transaction_payment: Default::default(),
 		kitties_module: KittiesModuleConfig {
-			genesis_value: Vec::new(),
-    		account: todo!(),
+			genesis_value: dnas,
+    		account: account,
 		}
 	}
 }

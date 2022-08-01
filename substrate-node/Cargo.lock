@@ -4048,6 +4048,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hex-literal",
  "log",
  "pallet-randomness-collective-flip",
  "pallet-timestamp",
