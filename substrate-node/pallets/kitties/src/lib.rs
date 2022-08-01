@@ -117,6 +117,35 @@ pub mod pallet {
 
 	}
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig {
+		pub account : String,
+		pub genesis_value : Vec<Vec<u8>>,
+	}
+
+	#[cfg(feature = "std")]
+	impl Default for GenesisConfig {
+		fn default() -> GenesisConfig {
+			GenesisConfig {
+				account: String::from(""),
+				genesis_value : Vec::new(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T:Config> GenesisBuild<T> for GenesisConfig {
+		fn build(&self) {
+			let alice = T::AccountId::decode(&mut &self.account.as_bytes()[..]).unwrap();
+
+			let mut alice_owned = KittiesOwned::<T>::get(&alice);
+			for v in self.genesis_value.iter() {
+				alice_owned.try_push(v.clone());
+			}
+			KittiesOwned::<T>::insert(&alice, alice_owned);
+		}
+	}
+
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
 	// These functions materialize as "extrinsics", which are often compared to transactions.
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
