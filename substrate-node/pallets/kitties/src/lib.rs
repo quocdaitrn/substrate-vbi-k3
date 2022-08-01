@@ -30,6 +30,8 @@ type AtMoment<T> = <<T as Config>::Time as Time>::Moment;
 #[frame_support::pallet]
 pub mod pallet {
 
+	use hex_literal::hex;
+
 	pub use super::*;
 	#[derive(Clone, Encode, Decode, PartialEq, TypeInfo)]
 	#[scale_info(skip_type_params(T))]
@@ -118,31 +120,32 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig {
-		pub account : String,
+	pub struct GenesisConfig<T:Config> {
+		pub account : T::AccountId,
 		pub genesis_value : Vec<Vec<u8>>,
 	}
 
 	#[cfg(feature = "std")]
-	impl Default for GenesisConfig {
-		fn default() -> GenesisConfig {
+	impl<T:Config> Default for GenesisConfig<T> {
+		fn default() -> GenesisConfig<T> {
+			let account32: sp_runtime::AccountId32 = hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into();
+    		let mut init_account32 = sp_runtime::AccountId32::as_ref(&account32);
+    		let init_account = T::AccountId::decode(&mut init_account32).unwrap();
 			GenesisConfig {
-				account: String::from(""),
+				account: init_account,
 				genesis_value : Vec::new(),
 			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T:Config> GenesisBuild<T> for GenesisConfig {
+	impl<T:Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			let alice = T::AccountId::decode(&mut &self.account.as_bytes()[..]).unwrap();
-
-			let mut alice_owned = KittiesOwned::<T>::get(&alice);
+			let mut alice_owned = KittiesOwned::<T>::get(&self.account);
 			for v in self.genesis_value.iter() {
 				alice_owned.try_push(v.clone());
 			}
-			KittiesOwned::<T>::insert(&alice, alice_owned);
+			KittiesOwned::<T>::insert(&self.account, alice_owned);
 		}
 	}
 
